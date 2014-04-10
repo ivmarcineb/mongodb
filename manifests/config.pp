@@ -49,14 +49,14 @@ class mongodb::config(
   
   if $key_file {
     file { $key_file:
-      mode => 700,
+      mode => 700
     }
     
     exec { 'mongodb-restart' :
       command   => "service ${mongodb::params::mongo_service} restart",
       path      => "/usr/bin:/usr/sbin:/bin:/sbin",
       logoutput => true,
-      require   => File[$key_file],
+      require   => [File[$key_file], File["/etc/${mongodb::params::mongo_config}"]],
     }
   } else {
     exec { 'mongodb-restart' :
