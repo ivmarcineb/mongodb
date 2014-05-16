@@ -46,12 +46,17 @@ class mongodb::config(
   file { "/etc/${mongodb::params::mongo_config}":
     content => template("mongodb/${mongodb::params::mongo_config}.erb"),
   }
-  
+
+  exec { 'remove-lock' :
+      command   => "rm /var/lib/mongo/mongod.lock",
+      path      => "/usr/bin:/usr/sbin:/bin:/sbin",
+      logoutput => true,
+    }
+
   if $key_file {
     file { $key_file:
       mode => 700
     }
-    
     exec { 'mongodb-restart' :
       command   => "service ${mongodb::params::mongo_service} restart",
       path      => "/usr/bin:/usr/sbin:/bin:/sbin",

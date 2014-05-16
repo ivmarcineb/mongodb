@@ -16,8 +16,18 @@ define mongodb::admin(
     logoutput => true,
   }
   
-  $noauth = "mongo admin --eval \"db.addUser(\\\"${name}\\\", \\\"${password}\\\")\""
-  $auth = "if [ $? -eq 252 ]; then mongo -u ${admin_username} -p ${admin_password} admin --eval \"db.addUser(\\\"${name}\\\", \\\"${password}\\\")\";fi"
+
+  if $version == '2.4.8' 
+  {
+    $noauth = "mongo admin --eval \"db.addUser(\\\"${name}\\\", \\\"${password}\\\")\""
+    $auth = "if [ $? -eq 252 ]; then mongo -u ${admin_username} -p ${admin_password} admin --eval \"db.addUser(\\\"${name}\\\", \\\"${password}\\\")\";fi"
+  }
+  else
+  {
+    $noauth = "mongo admin --eval \"db.createUser({user:\\\"${name}\\\",pwd: \\\"${password}\\\", roles: [ \"readWrite\", \"dbAdmin\" ]})\""
+    $auth = "if [ $? -eq 252 ]; then mongo -u ${admin_username} -p ${admin_password} admin --eval \"db.createUser({user:\\\"${name}\\\",pwd: \\\"${password}\\\", roles: [ ]})\";fi"
+  }
+  
   $command = "${noauth};${auth}"
   exec { "${name}_add_user" :
     command   => $command,
